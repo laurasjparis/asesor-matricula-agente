@@ -1,0 +1,46 @@
+codigo,nombre,creditos,semestre,prerrequisitos
+BU0011,Bienestar Universitario,1,1,
+CM0230,Cálculo I,3,1,
+CM0260,Lógica,3,1,
+ST0242,Fundamentos de Programación,4,1,
+ST0243,Principios de Desarrollo de Software,2,1,
+ST0260,Seminario Ingeniería de Sistemas,1,1,
+CM0231,Cálculo II,3,2,CM0230
+CM0246,Estructuras Discretas,3,2,
+DF0236,Física I,4,2,
+ST0244,Lenguajes de Programación,3,2,ST0242
+ST0245,Estructura de Datos y Algoritmos 1,3,2,ST0242
+CM0232,Cálculo III,3,3,CM0231
+DF0239,Física II,4,3,DF0236
+ST0246,Base de Datos,3,3,ST0244;ST0245
+ST0247,Estructura de Datos y Algoritmos 2,3,3,ST0245
+ST0248,Electrónica Digital,2,3,
+ST0270,Lenguajes Formales y Compiladores,4,3,CM0246
+CM0234,Álgebra Lineal,3,4,
+OG0205,Teoría de la Organización,3,4,
+ST0249,Teoría de la Conmutación,2,4,ST0248
+ST0250,Ingeniería de Software,4,4,ST0246
+ST0251,Proyecto Integrador 1,3,4,
+EC0255,Economía General,3,5,CM0232
+ST0252,Sistemas de Información,3,5,ST0250
+ST0253,Pensamiento Sistémico,3,5,
+CM0244,Estadística General,3,6,CM0231
+OG0276,Ingeniería Económica,3,6,EC0255
+ST0254,Organización de Computadores,3,6,ST0249
+ST0255,Telemática,3,6,ST0250
+ST0256,Análisis Numérico,3,6,CM0234
+CM0245,Métodos Cuantitativos,3,7,CM0232
+ST0257,Sistemas Operativos,4,7,ST0254
+ST0258,Proyecto Integrador 2,3,7,ST0251
+ST0261,Tópicos Especiales en Ingeniería de Software,3,7,ST0251
+ST0262,Tópicos Especiales en Sistemas de Información,3,7,ST0252
+ST0263,Tópicos Especiales en Telemática,3,7,ST0255
+PT0131,Período de Práctica (Ingeniería de Sistemas Reforma),18,8,
+ST0277,Gestión de Proyectos Informáticos,3,9,ST0250
+DE0520,Ciudadanía y Democracia,3,1,
+HL1421,Arte y Ciudadanía,3,2,
+FH1023,Estilos de Vida Sostenible,3,4,
+FH1031,"Música, Lenguaje y Memoria",3,5,
+FH1032,Imaginación y Creatividad,3,5,
+EI7000,Computación Cuántica I,3,5,CM0234
+ST0293,Introducción a Inteligencia Artificial,3,9,ST0247
