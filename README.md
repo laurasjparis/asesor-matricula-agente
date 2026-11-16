@@ -6,9 +6,9 @@ Agente conversacional que ayuda a un estudiante de Ingeniería de Sistemas a dec
 
 | Persona | Nombre | Responsabilidad |
 |---|---|---|
-| A | _[nombre]_ | README, casos de prueba, análisis y guion de demo |
-| B | _[nombre]_ | Datos (`pensum.csv`, `historial.csv`) y herramientas (`herramientas.py`) |
-| C | _[nombre]_ | Agente (`agente.py`), esquemas, prompt, presupuesto y notebook |
+| A | Samuel Ramirez | README, casos de prueba, análisis y guion de demo |
+| B | Manuel Arenas | Datos (`pensum.csv`, `historial.csv`) y herramientas (`herramientas.py`) |
+| C | Laura Jimenez | Agente (`agente.py`), esquemas, prompt, presupuesto y notebook |
 
 ## Problema
 
@@ -149,40 +149,52 @@ Cada caso se definió con su resultado esperado **antes** de ejecutar el agente.
 
 ## Resultados de la ejecución
 
-> ⏳ **Pendiente:** correr `python ejecutar_casos.py` y pegar aquí lo que salga de `resultados_casos.json` (herramienta, argumentos, resultado, respuesta final). Los valores esperados de arriba **no se modifican** después de correr.
+Los valores esperados se calcularon a mano **antes** de correr el agente y no se modificaron. Traza completa en `resultados_casos.json`.
 
-| # | Tool calls (obtenidas) | Coincide con lo esperado | Respuesta final correcta | Veredicto |
+| # | Tool calls obtenidas | ¿Coincide con lo esperado? | Respuesta final | Veredicto |
 |---|---|---|---|---|
-| 1 | _pendiente_ | _pendiente_ | _pendiente_ | _pendiente_ |
-| 2 | _pendiente_ | _pendiente_ | _pendiente_ | _pendiente_ |
-| 3 | _pendiente_ | _pendiente_ | _pendiente_ | _pendiente_ |
-| 4 | _pendiente_ | _pendiente_ | _pendiente_ | _pendiente_ |
-| 5 | _pendiente_ | _pendiente_ | _pendiente_ | _pendiente_ |
+| 1 | 1: `buscar_materia("calculo")` | Sí | Lista Cálculo I, II y III (CM0230, CM0231, CM0232) y pregunta cuál | ✅ Pasa |
+| 2 | 1: `buscar_materia("Termodinámica")` | Sí | Dice que no existe en el pensum; no inventa datos | ✅ Pasa |
+| 3 | 3: `buscar_materia`, `resumen_academico`, `verificar_prerrequisitos("DF0239")` | Parcial: `resumen_academico` no era necesaria | DF0239 ya aprobada, no se puede inscribir de nuevo; no cita notas | ✅ Pasa (con una llamada de más) |
+| 4 | 5: 3× `buscar_materia`, `resumen_academico`, `verificar_prerrequisitos("PT0131")`. **No llamó a `validar_carga`** | No | No detecta que ST0277 y ST0257 ya están aprobadas; afirma que la consulta de prerrequisitos "falló por un error de la herramienta" (en la traza ninguna herramienta devolvió error). Sí acierta en 25 > 21 créditos y en que PT0131 es inscribible | ❌ Falla |
+| 5 | 1: `resumen_academico` | Sí | Promedio 3.83, faltan 18 créditos (149 − 131); avisa que no verificó Física II, aunque da una razón incorrecta | ✅ Pasa (con observación) |
 
-### Traza detallada
+### Traza resumida
 
-_Pegar por caso: `[n] herramienta(argumentos) → resultado` y la respuesta final._
-
----
+- **Caso 1:** `buscar_materia({"nombre_o_codigo": "calculo"})` → 3 materias.
+- **Caso 2:** `buscar_materia({"nombre_o_codigo": "Termodinámica"})` → `encontrada: false`.
+- **Caso 3:** `buscar_materia("Física II")` → DF0239; `resumen_academico()` → 44 aprobadas, 3.83; `verificar_prerrequisitos("DF0239")` → `ya_aprobada: true`.
+- **Caso 4:** `buscar_materia` ×3 → PT0131 (18 cr), ST0277 (3 cr), ST0257 (4 cr); `resumen_academico()`; `verificar_prerrequisitos("PT0131")` → `puede_inscribir: true`. Presupuesto de 5 agotado antes de `validar_carga`.
+- **Caso 5:** `resumen_academico()` → 3.83, 131/149. Presupuesto de 1 agotado.
 
 ## Análisis
 
 ### Valoración general
-_Escribir tras correr: cuántos casos pasaron, dónde el agente se comportó como se esperaba y dónde no._
+
+El agente pasó 4 de 5 casos. Cuando responde, los datos coinciden con lo calculado a mano: 3.83 de promedio, 131 de 149 créditos, DF0239 aprobada, 25 créditos en el caso 4. No inventó materias, códigos ni notas, pidió aclarar ante la consulta ambigua, reconoció la materia inexistente y nunca superó el presupuesto de llamadas.
+
+El caso 4 falló: el agente no usó `validar_carga`, que existe justo para esa pregunta, y no se enteró de que dos de las tres materias ya estaban aprobadas. Gastó una llamada en `resumen_academico` (que nadie pidió) y otra en `verificar_prerrequisitos`, y el presupuesto de 5 se acabó antes de llegar a la herramienta correcta. Las 3 búsquedas por nombre ya consumen más de la mitad del presupuesto.
 
 ### Limitación observada
-_Elegir una **que realmente se observe** al correr. Candidatas detectadas al revisar el código (confirmar o descartar):_
 
-1. **Búsqueda por subcadena ambigua.** `buscar_materia("Cálculo II")` también devuelve `Cálculo III` (porque "calculo ii" está dentro de "calculo iii"), y `"Ingeniería de Software"` devuelve también `Tópicos Especiales en Ingeniería de Software`. El agente debe desambiguar por su cuenta.
-2. **Nombres que no coinciden literalmente.** `buscar_materia("Introducción a la IA")` devuelve 0 resultados porque el pensum dice "Introducción a Inteligencia Artificial". No hay búsqueda aproximada ni sinónimos.
-3. **Las herramientas no devuelven notas ni periodos.** El agente no puede responder "¿con qué nota aprobé X?". Debería decir que no puede verificarlo en vez de inventarlo.
-4. **Presupuesto fijo.** Preguntas con varias materias por nombre gastan una llamada por materia solo en buscar códigos.
+**Cuando se agota el presupuesto, el agente no explica la causa real de lo que no pudo verificar.**
+
+- En el caso 4 dijo que la consulta de prerrequisitos "falló por un error de la herramienta", pero ninguna herramienta devolvió error: lo que pasó es que se acabó el límite de llamadas.
+- En el caso 5 dijo que no pudo verificar Física II porque "no obtuvo el listado detallado" y pidió el código exacto, cuando el motivo real era el presupuesto de 1 llamada; dar el código no habría ayudado.
+
+Esto es consistente con el mensaje que `agente.py` envía al modelo en la llamada final sin herramientas, que le pide no mencionar ese mensaje del sistema: el modelo no sabe que se llegó al límite y rellena con una explicación inventada. El estudiante queda con información engañosa sobre por qué la respuesta está incompleta.
+
+Relacionada: la traza solo guarda las llamadas ejecutadas, no las rechazadas por presupuesto, así que desde `traza` no se puede ver qué quiso hacer el agente y no pudo.
 
 ### Mejora posible
-_Ligada a la limitación elegida. Ejemplos:_
-- `buscar_materia`: dar prioridad a la coincidencia exacta de nombre sobre la parcial, o aceptar una lista de nombres en una sola llamada para ahorrar presupuesto.
-- Agregar búsqueda aproximada (por palabras clave, no por subcadena completa).
-- Agregar una herramienta `historial_de_materia(codigo)` que devuelva notas y periodos.
+
+1. **Decir la causa real.** Cambiar el mensaje de la llamada final para indicar explícitamente que se alcanzó el límite de consultas y que el agente debe decirle eso al estudiante, junto con qué partes quedaron sin verificar.
+2. **Registrar las llamadas rechazadas** en `traza` (herramienta y argumentos con resultado `"presupuesto agotado"`), para poder analizarlas.
+3. **Guiar el uso de herramientas en el prompt:** si el estudiante pide inscribir varias materias, usar `validar_carga` con los códigos; no llamar a `resumen_academico` si no se pidió.
+4. **Ahorrar presupuesto:** permitir que `buscar_materia` reciba varios nombres en una sola llamada, para que 3 materias no cuesten 3 llamadas.
+
+Después de aplicar la mejora se vuelve a correr el caso 4 y se compara con esta corrida.
+
 
 ## Estructura del repositorio
 
