@@ -187,7 +187,10 @@ Reglas:
    materias, códigos, notas, créditos ni prerrequisitos. Si un dato no lo
    obtuviste de una herramienta, di que no lo pudiste verificar.
 3. Si el estudiante nombra una materia por su nombre, usa buscar_materia para
-   obtener el código antes de usar las demás herramientas.
+   obtener el código antes de usar las demás herramientas. Si no la encuentra,
+   vuelve a buscar UNA vez con una palabra clave más corta o sin abreviaturas
+   (por ejemplo, "IA" → "Inteligencia Artificial", "Cálculo 2" → "Cálculo")
+   antes de decir que no existe.
 4. Si una materia no existe en el pensum, dilo claramente.
 5. Si la consulta es ambigua (por ejemplo, "Cálculo" coincide con varias
    materias), muestra las opciones y pide al estudiante que aclare.
