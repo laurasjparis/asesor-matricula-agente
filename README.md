@@ -66,7 +66,7 @@ Los CSV deben estar en la carpeta `data/`. La clave nunca se escribe en el códi
 
 ## Fuentes
 
-- Pensum y notas: datos de ejemplo elaborados por el equipo _[indicar origen: pensum real adaptado / inventado]_.
+- Pensum y notas: plan de estudios de Ingeniería de Sistemas de la universidad EAFIT e historial de uno de los miembros del grupo, usado con su autorización.
 - Agentic loop y control de presupuesto: notebooks de clase `part01_from_prompt_to_action` y `part03`.
 - Modelo: `nvidia/nemotron-3.5-super-vl-120b-a12b` vía [NVIDIA NIM](https://build.nvidia.com/).
 
