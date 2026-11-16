@@ -9,18 +9,9 @@ import os
 import json
 from openai import OpenAI
 
-# Herramientas: Usa herramientas.py y lee data/*.csv
-
-try:
-    from herramientas import (buscar_materia, verificar_prerrequisitos,
-                              materias_disponibles, resumen_academico, validar_carga)
-    FUENTE_DATOS = "herramientas.py"
-except ModuleNotFoundError as e:
-    if e.name != "herramientas":
-        raise
-    from herramientas_stub import (buscar_materia, verificar_prerrequisitos,
-                                   materias_disponibles, resumen_academico, validar_carga)
-    FUENTE_DATOS = "herramientas_stub.py (datos FALSOS)"
+# Herramientas: herramientas.py lee data/pensum.csv y data/historial.csv
+from herramientas import (buscar_materia, verificar_prerrequisitos,
+                          materias_disponibles, resumen_academico, validar_carga)
 
 
 
@@ -55,7 +46,7 @@ client = OpenAI(base_url="https://integrate.api.nvidia.com/v1", api_key=obtener_
 
 MODEL = "nvidia/nemotron-3.5-super-vl-120b-a12b"
 
-print(f" Backend: NVIDIA | Modelo: {MODEL} | Datos: {FUENTE_DATOS}")
+print(f" Backend: NVIDIA | Modelo: {MODEL}")
 
 
 # Herramientas: funciones Python que el agente puede llamar. Cada función recibe
