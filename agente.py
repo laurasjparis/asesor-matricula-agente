@@ -1,8 +1,4 @@
 """
-agente.py — Asesor de matrícula con herramientas (Opción B).
-
-Adapta el agentic loop de part01 (run_agent) y el control de presupuesto de
-part03 (run_agent_with_budget). Sin frameworks: solo el cliente openai.
 
 Uso:
     from agente import run_agent
@@ -13,10 +9,8 @@ import os
 import json
 from openai import OpenAI
 
-# Herramientas: si existe herramientas.py (versión real, lee data/*.csv) se usa
-# esa; si no, el stub con datos falsos.
-# Solo capturamos "el módulo no existe". Si herramientas.py existe pero le falta
-# una función, el error SÍ se muestra (no queremos usar el stub sin darnos cuenta).
+# Herramientas: Usa herramientas.py y lee data/*.csv
+
 try:
     from herramientas import (buscar_materia, verificar_prerrequisitos,
                               materias_disponibles, resumen_academico, validar_carga)
@@ -29,13 +23,13 @@ except ModuleNotFoundError as e:
     FUENTE_DATOS = "herramientas_stub.py (datos FALSOS)"
 
 
-# ════════════════════════════════════════════════════════════
-#  CONFIGURACIÓN — NVIDIA NIM
-# ════════════════════════════════════════════════════════════
+
+#  Configuración — NVIDIA NIM
+
 
 def obtener_api_key() -> str:
     """Lee NVIDIA_API_KEY: primero secretos de Colab, si no, entorno / .env."""
-    # 1. Google Colab (🔑 Secretos). Falla si no estamos en Colab o no existe el secreto.
+    # 1. Google Colab. Falla si no estamos en Colab o no existe el secreto.
     try:
         from google.colab import userdata
         clave = userdata.get("NVIDIA_API_KEY")
@@ -57,18 +51,16 @@ def obtener_api_key() -> str:
 
 
 client = OpenAI(base_url="https://integrate.api.nvidia.com/v1", api_key=obtener_api_key())
-# Modelo del catálogo de NIM con soporte de tool use (el mismo de los notebooks de clase).
-# Nota: meta/llama-3.3-70b-instruct fue retirado de NIM el 2026-08-26 (error 410).
+# Modelo del catálogo de NIM con soporte de tool use.
+
 MODEL = "nvidia/nemotron-3.5-super-vl-120b-a12b"
 
-print(f"✅ Backend: NVIDIA | Modelo: {MODEL} | Datos: {FUENTE_DATOS}")
+print(f" Backend: NVIDIA | Modelo: {MODEL} | Datos: {FUENTE_DATOS}")
 
 
-# ════════════════════════════════════════════════════════════
-#  HERRAMIENTAS
-# ════════════════════════════════════════════════════════════
+# Herramientas: funciones Python que el agente puede llamar. Cada función recibe
 
-# ── Registro: nombre → función Python ────────────────────────────────────────
+# Registro: nombre → función Python
 # Este dict es el "router" del agentic loop.
 TOOL_REGISTRY = {
     "buscar_materia":           buscar_materia,
@@ -78,7 +70,7 @@ TOOL_REGISTRY = {
     "validar_carga":            validar_carga,
 }
 
-# ── JSON schemas: lo que el modelo ve ────────────────────────────────────────
+# JSON schemas: lo que el modelo ve 
 TOOLS = [
     {
         "type": "function",
@@ -170,12 +162,12 @@ TOOLS = [
     },
 ]
 
-print(f"✅ {len(TOOLS)} herramientas: {[t['function']['name'] for t in TOOLS]}")
+print(f" {len(TOOLS)} herramientas: {[t['function']['name'] for t in TOOLS]}")
 
 
-# ════════════════════════════════════════════════════════════
+
 #  SYSTEM PROMPT
-# ════════════════════════════════════════════════════════════
+
 
 SYSTEM_PROMPT = """
 Eres un asesor de matrícula universitaria. Ayudas a un estudiante a decidir qué
@@ -202,9 +194,9 @@ Reglas:
 """.strip()
 
 
-# ════════════════════════════════════════════════════════════
-#  EJECUCIÓN SEGURA DE UNA HERRAMIENTA
-# ════════════════════════════════════════════════════════════
+
+#  Ejecución de herramientas
+
 
 def ejecutar_herramienta(nombre: str, argumentos_json: str):
     """
@@ -243,9 +235,7 @@ def ejecutar_herramienta(nombre: str, argumentos_json: str):
     return argumentos, resultado
 
 
-# ════════════════════════════════════════════════════════════
-#  AGENTIC LOOP CON PRESUPUESTO
-# ════════════════════════════════════════════════════════════
+#Agentic loop: iteraciones de LLM → tool calls → resultados → LLM
 
 def run_agent(pregunta: str, max_tool_calls: int = 5, verbose: bool = True):
     """
@@ -275,7 +265,7 @@ def run_agent(pregunta: str, max_tool_calls: int = 5, verbose: bool = True):
 
     for iteracion in range(1, 11):  # máx 10 iteraciones (seguro contra loops infinitos)
 
-        # ── Llamada al LLM ──────────────────────────────────────────────
+        # Llamada al LLM 
         response = client.chat.completions.create(
             model=MODEL,
             messages=messages,
@@ -288,16 +278,17 @@ def run_agent(pregunta: str, max_tool_calls: int = 5, verbose: bool = True):
         if verbose:
             print(f"  iter={iteracion} finish_reason={choice.finish_reason}")
 
-        # ── ¿Terminó? ───────────────────────────────────────────────────
+        # ¿Terminó?
         # Revisamos si hay tool_calls en vez de mirar finish_reason == "stop",
         # porque algunos modelos en NIM devuelven "stop" aunque pidan herramientas.
         if not mensaje.tool_calls:
             respuesta = mensaje.content or ""
             if verbose:
-                print(f"\n  🤖 {respuesta}")
+                print(f"\n   {respuesta}")
             return respuesta, traza
 
-        # ── Hay tool calls ──────────────────────────────────────────────
+        # Hay tool calls 
+        
         # 1. Agregar la respuesta del asistente al historial
         messages.append(mensaje)
 
@@ -310,7 +301,7 @@ def run_agent(pregunta: str, max_tool_calls: int = 5, verbose: bool = True):
             if tool_calls_usadas >= max_tool_calls:
                 presupuesto_agotado = True
                 if verbose:
-                    print(f"  ⛔ {tc.function.name} NO ejecutada: presupuesto agotado")
+                    print(f"   {tc.function.name} NO ejecutada: presupuesto agotado")
                 messages.append({
                     "role":         "tool",
                     "tool_call_id": tc.id,
@@ -328,7 +319,7 @@ def run_agent(pregunta: str, max_tool_calls: int = 5, verbose: bool = True):
 
             if verbose:
                 restante = max_tool_calls - tool_calls_usadas
-                print(f"  🔧 {tc.function.name}({json.dumps(argumentos, ensure_ascii=False)})"
+                print(f"   {tc.function.name}({json.dumps(argumentos, ensure_ascii=False)})"
                       f" | restante: {restante}/{max_tool_calls}")
                 preview = contenido[:300] + "..." if len(contenido) > 300 else contenido
                 print(f"     → {preview}")
@@ -344,11 +335,11 @@ def run_agent(pregunta: str, max_tool_calls: int = 5, verbose: bool = True):
             motivo_parada = "presupuesto agotado"
             break
 
-    # ── Respuesta parcial ───────────────────────────────────────────────
+    # Respuesta parcial
     # Se acabó el presupuesto (o las iteraciones): última llamada SIN tools
     # para que el modelo responda con lo que alcanzó a consultar.
     if verbose:
-        print(f"  ⚠️ Agente detenido ({motivo_parada}). Pidiendo respuesta parcial...")
+        print(f"  Agente detenido ({motivo_parada}). Pidiendo respuesta parcial...")
 
     messages.append({
         "role": "user",
@@ -363,7 +354,7 @@ def run_agent(pregunta: str, max_tool_calls: int = 5, verbose: bool = True):
     respuesta = response.choices[0].message.content or ""
 
     if verbose:
-        print(f"\n  🤖 {respuesta}")
+        print(f"\n  {respuesta}")
     return respuesta, traza
 
 
