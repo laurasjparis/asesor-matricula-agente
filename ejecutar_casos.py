@@ -7,6 +7,8 @@ Uso:
 
 Genera resultados_casos.json (herramienta, argumentos, resultado y respuesta
 final de cada caso) para pegar en el README.
+Si corres solo algunos casos, NO sobrescribe resultados_casos.json: guarda en
+resultados_parcial_<casos>_<hora>.json para que no se pierda la corrida completa.
 
 Las columnas "esperado_*" se calcularon a mano desde los CSV ANTES de correr.
 Las verificaciones automáticas son solo una ayuda: el veredicto final lo da
@@ -16,6 +18,7 @@ una persona leyendo la respuesta.
 import json
 import sys
 import unicodedata
+from datetime import datetime
 
 from agente import run_agent
 
@@ -46,13 +49,14 @@ CASOS = [
         "esperado": "Dice que no existe en el pensum; no inventa datos.",
     },
     {
-        "id": 3, "nombre": "Repitencia",
+        "id": 3, "nombre": "Materia perdida sin aprobar",
         "pregunta": "Perdí Física II la primera vez, ¿ya la tengo aprobada?",
         "presupuesto": 5,
         "esperado_herramientas": ["buscar_materia", "verificar_prerrequisitos"],
         "debe_contener": [],
-        "no_debe_contener": ["2.3", "3.3"],   # las herramientas no devuelven notas
-        "esperado": "DF0239 ya aprobada; no hay que inscribirla. No cita notas.",
+        "no_debe_contener": ["2.3"],          # las herramientas no devuelven notas
+        "esperado": ("DF0239 NO está aprobada (solo tiene un 2.3). Puede inscribirla: "
+                     "su prerrequisito DF0236 está cumplido. No cita notas."),
     },
     {
         "id": 4, "nombre": "Carga inválida",
@@ -60,10 +64,10 @@ CASOS = [
                      "y Sistemas Operativos. ¿Puedo?"),
         "presupuesto": 5,
         "esperado_herramientas": ["buscar_materia", "validar_carga"],
-        "debe_contener": ["25", "21"],
+        "debe_contener": ["25", "21", "ST0254"],
         "no_debe_contener": [],
-        "esperado": ("valida=False, 25 créditos; ST0277 y ST0257 ya aprobadas; "
-                     "excede 21."),
+        "esperado": ("valida=False, 25 créditos (18+3+4). ST0257 falla por prerrequisito "
+                     "ST0254; excede 21. ST0277 y PT0131 sin problema propio."),
     },
     {
         "id": 5, "nombre": "Presupuesto agotado",
@@ -72,8 +76,9 @@ CASOS = [
         "esperado_herramientas": [],           # solo se ejecuta 1 llamada
         "debe_contener": [],
         "no_debe_contener": [],
-        "esperado": ("Solo 1 tool call ejecutada. Si fue resumen_academico: 3.83, "
-                     "131/149, faltan 18. Avisa lo que no pudo verificar."),
+        "esperado": ("Solo 1 tool call ejecutada. Si fue resumen_academico: promedio 3.65, "
+                     "53 de 149 créditos aprobados (faltan 96). Avisa que no verificó Física II "
+                     "y que el motivo es el límite de consultas."),
     },
 ]
 
@@ -129,9 +134,14 @@ def main():
             "avisos_automaticos": avisos, "error": error,
         })
 
-    with open("resultados_casos.json", "w", encoding="utf-8") as f:
+    if ids == {c["id"] for c in CASOS}:
+        salida = "resultados_casos.json"
+    else:
+        salida = (f"resultados_parcial_{'-'.join(map(str, sorted(ids)))}_"
+                  f"{datetime.now():%H%M%S}.json")
+    with open(salida, "w", encoding="utf-8") as f:
         json.dump(resultados, f, ensure_ascii=False, indent=2)
-    print("\n💾 Guardado en resultados_casos.json")
+    print(f"\n💾 Guardado en {salida}")
 
 
 if __name__ == "__main__":

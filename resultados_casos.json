@@ -43,7 +43,7 @@
         }
       }
     ],
-    "respuesta_final": "La búsqueda de \"Cálculo\" devolvió tres materias:\n\n1. **Cálculo I** — código **CM0230** — 3 créditos — semestre 1 — sin prerrequisitos  \n2. **Cálculo II** — código **CM0231** — 3 créditos — semestre 2 — prerrequisito: CM0230  \n3. **Cálculo III** — código **CM0232** — 3 créditos — semestre 3 — prerrequisito: CM0231  \n\n¿De cuál de estas materias quieres más información, o cuál te interesa inscribir?",
+    "respuesta_final": "Se encontraron varias materias con \"Cálculo\":\n\n1. **CM0230 – Cálculo I** – 3 créditos – Semestre 1 – Sin prerrequisitos  \n2. **CM0231 – Cálculo II** – 3 créditos – Semestre 2 – Prerrequisito: CM0230 (Cálculo I)  \n3. **CM0232 – Cálculo III** – 3 créditos – Semestre 3 – Prerrequisito: CM0231 (Cálculo II)\n\n¿Cuál de estas materias te gustaría revisar en detalle? (Puedes decirme el código o el nombre exacto).",
     "avisos_automaticos": [],
     "error": null
   },
@@ -63,19 +63,45 @@
           "encontrada": false,
           "mensaje": "No hay materias que coincidan con 'Termodinámica'."
         }
+      },
+      {
+        "herramienta": "buscar_materia",
+        "argumentos": {
+          "nombre_o_codigo": "Termo"
+        },
+        "resultado": {
+          "encontrada": false,
+          "mensaje": "No hay materias que coincidan con 'Termo'."
+        }
       }
     ],
-    "respuesta_final": "No pude verificar **Termodinámica** porque no existe ninguna materia con ese nombre en el pensum. Si conoces el código exacto o el nombre completo, dímelo y lo busco de nuevo.",
+    "respuesta_final": "No pude verificar la materia **Termodinámica** porque no aparece en el pensum con ese nombre. También probé buscar con una palabra clave más corta (\"Termo\") y no se encontró ninguna coincidencia.\n\nSi tienes el código exacto de la materia o sabes si se llama de otra forma, dímelo y lo busco de nuevo.",
     "avisos_automaticos": [],
     "error": null
   },
   {
     "caso": 3,
-    "nombre": "Repitencia",
+    "nombre": "Materia perdida sin aprobar",
     "pregunta": "Perdí Física II la primera vez, ¿ya la tengo aprobada?",
     "presupuesto": 5,
-    "esperado": "DF0239 ya aprobada; no hay que inscribirla. No cita notas.",
+    "esperado": "DF0239 NO está aprobada (solo tiene un 2.3). Puede inscribirla: su prerrequisito DF0236 está cumplido. No cita notas.",
     "traza": [
+      {
+        "herramienta": "resumen_academico",
+        "argumentos": {},
+        "resultado": {
+          "materias_aprobadas": 19,
+          "materias_pendientes": 26,
+          "creditos_aprobados": 53,
+          "creditos_totales_pensum": 149,
+          "promedio_ponderado": 3.65,
+          "materias_reprobadas_sin_aprobar": [
+            "CM0232",
+            "CM0246",
+            "DF0239"
+          ]
+        }
+      },
       {
         "herramienta": "buscar_materia",
         "argumentos": {
@@ -95,38 +121,12 @@
             }
           ]
         }
-      },
-      {
-        "herramienta": "resumen_academico",
-        "argumentos": {},
-        "resultado": {
-          "materias_aprobadas": 44,
-          "materias_pendientes": 1,
-          "creditos_aprobados": 131,
-          "creditos_totales_pensum": 149,
-          "promedio_ponderado": 3.83,
-          "materias_reprobadas_sin_aprobar": []
-        }
-      },
-      {
-        "herramienta": "verificar_prerrequisitos",
-        "argumentos": {
-          "codigo": "DF0239"
-        },
-        "resultado": {
-          "codigo": "DF0239",
-          "nombre": "Física II",
-          "ya_aprobada": true,
-          "prerrequisitos_cumplidos": [
-            "DF0236"
-          ],
-          "prerrequisitos_faltantes": [],
-          "puede_inscribir": false
-        }
       }
     ],
-    "respuesta_final": "Sí, según el sistema **Física II (código DF0239) ya está aprobada**. No puedes volver a inscribirla.",
-    "avisos_automaticos": [],
+    "respuesta_final": "No, **no la tienes aprobada**.\n\nSegún tu resumen académico, **DF0239 (Física II)** aparece entre las materias reprobadas que aún no has aprobado. Para poder inscribir materias que requieran Física II como prerrequisito, primero debes aprobarla.",
+    "avisos_automaticos": [
+      "no llamó a la herramienta esperada: verificar_prerrequisitos"
+    ],
     "error": null
   },
   {
@@ -134,7 +134,7 @@
     "nombre": "Carga inválida",
     "pregunta": "Quiero inscribir Período de Práctica, Gestión de Proyectos y Sistemas Operativos. ¿Puedo?",
     "presupuesto": 5,
-    "esperado": "valida=False, 25 créditos; ST0277 y ST0257 ya aprobadas; excede 21.",
+    "esperado": "valida=False, 25 créditos (18+3+4). ST0257 falla por prerrequisito ST0254; excede 21. ST0277 y PT0131 sin problema propio.",
     "traza": [
       {
         "herramienta": "buscar_materia",
@@ -195,36 +195,33 @@
         }
       },
       {
-        "herramienta": "resumen_academico",
-        "argumentos": {},
-        "resultado": {
-          "materias_aprobadas": 44,
-          "materias_pendientes": 1,
-          "creditos_aprobados": 131,
-          "creditos_totales_pensum": 149,
-          "promedio_ponderado": 3.83,
-          "materias_reprobadas_sin_aprobar": []
-        }
-      },
-      {
-        "herramienta": "verificar_prerrequisitos",
+        "herramienta": "validar_carga",
         "argumentos": {
-          "codigo": "PT0131"
+          "codigos": [
+            "PT0131",
+            "ST0277",
+            "ST0257"
+          ]
         },
         "resultado": {
-          "codigo": "PT0131",
-          "nombre": "Período de Práctica (Ingeniería de Sistemas Reforma)",
-          "ya_aprobada": false,
-          "prerrequisitos_cumplidos": [],
-          "prerrequisitos_faltantes": [],
-          "puede_inscribir": true
+          "valida": false,
+          "creditos_totales": 25,
+          "max_creditos": 21,
+          "problemas": [
+            {
+              "codigo": "ST0257",
+              "motivo": "Faltan prerrequisitos: ST0254"
+            },
+            {
+              "codigo": null,
+              "motivo": "Excede el máximo de 21 créditos (25)."
+            }
+          ]
         }
       }
     ],
-    "respuesta_final": "Con los datos que obtuve de las herramientas:\n\n| Materia | Código | Créditos | Semestre | Prerrequisitos |\n|---------|--------|----------|----------|----------------|\n| Período de Práctica (Ingeniería de Sistemas Reforma) | PT0131 | 18 | 8 | Ninguno |\n| Gestión de Proyectos Informáticos | ST0277 | 3 | 9 | ST0250 |\n| Sistemas Operativos | ST0257 | 4 | 7 | ST0254 |\n\n**Lo que sí puedo decirte:**\n\n1. **Período de Práctica (PT0131):** la herramienta indica que puedes inscribirla (no tiene prerrequisitos pendientes).\n2. **Límite de créditos:** las tres suman **25 créditos** (18 + 3 + 4), y el máximo permitido por semestre es **21 créditos**, por lo que no podrías inscribir las tres al mismo tiempo.\n3. **Gestión de Proyectos (ST0277) y Sistemas Operativos (ST0257):** no pude verificar si cumples sus prerrequisitos (ST0250 y ST0254, respectivamente) porque la consulta de prerrequisitos falló por un error de la herramienta.\n\n**Lo que no pude verificar:**\n- Si ya aprobaste ST0250 y ST0254.\n- Si Gestión de Proyectos o Sistemas Operativos están disponibles para tu semestre actual.\n\n**Recomendación:** elige máximo 21 créditos (por ejemplo, quita una materia) y confirma por otro medio si apruebas los prerrequisitos ST0250 y ST0254 antes de inscribir Gestión de Proyectos o Sistemas Operativos. No puedo realizar la inscripción por ti.",
-    "avisos_automaticos": [
-      "no llamó a la herramienta esperada: validar_carga"
-    ],
+    "respuesta_final": "No puedes inscribir esas tres materias juntas por dos motivos:\n\n1. **Excede el límite de créditos**: sumarían 25 créditos (18 + 3 + 4), y el máximo permitido es 21 por semestre.\n2. **Falta un prerrequisito**: *Sistemas Operativos* (ST0257) requiere *ST0254*, que no appears como aprobado.\n\n*Período de Práctica* (PT0131, 18 créditos) y *Gestión de Proyectos Informáticos* (ST0277, 3 créditos) no mostraron problemas de prerrequisitos en la validación, pero no se pueden cursar con *Sistemas Operativos* al mismo tiempo por el exceso de créditos.\n\n¿Quieres que revise otra combinación o necesitas saber cuáles materias están disponibles para ti este semestre?",
+    "avisos_automaticos": [],
     "error": null
   },
   {
@@ -232,22 +229,26 @@
     "nombre": "Presupuesto agotado",
     "pregunta": "Dame mi promedio, cuántos créditos me faltan y si ya aprobé Física II.",
     "presupuesto": 1,
-    "esperado": "Solo 1 tool call ejecutada. Si fue resumen_academico: 3.83, 131/149, faltan 18. Avisa lo que no pudo verificar.",
+    "esperado": "Solo 1 tool call ejecutada. Si fue resumen_academico: promedio 3.65, 53 de 149 créditos aprobados (faltan 96). Avisa que no verificó Física II y que el motivo es el límite de consultas.",
     "traza": [
       {
         "herramienta": "resumen_academico",
         "argumentos": {},
         "resultado": {
-          "materias_aprobadas": 44,
-          "materias_pendientes": 1,
-          "creditos_aprobados": 131,
+          "materias_aprobadas": 19,
+          "materias_pendientes": 26,
+          "creditos_aprobados": 53,
           "creditos_totales_pensum": 149,
-          "promedio_ponderado": 3.83,
-          "materias_reprobadas_sin_aprobar": []
+          "promedio_ponderado": 3.65,
+          "materias_reprobadas_sin_aprobar": [
+            "CM0232",
+            "CM0246",
+            "DF0239"
+          ]
         }
       }
     ],
-    "respuesta_final": "Tu promedio ponderado es **3.83**.\n\nTe faltan **18 créditos** para completar el pensum (149 totales − 131 aprobados).\n\nNo pude verificar si ya aprobaste **Física II**, ya que no obtuve el listado detallado de materias ni el código de la asignatura. Si me das el código exacto o el nombre completo, puedo buscarlo de nuevo.",
+    "respuesta_final": "Tu promedio ponderado es **3.65** (escala 0.0 a 5.0).\n\nTe faltan **96 créditos** para completar el pensum (149 totales menos 53 aprobados).\n\nNo pude verificar si ya aprobaste **Física II**, ya que no obtuve el detalle de tus materias por código o nombre.",
     "avisos_automaticos": [],
     "error": null
   }
